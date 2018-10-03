@@ -1,7 +1,7 @@
 from setuptools import find_packages, setup
 
 setup(
-    name='python3-sapo',
+    name='sapo',
     version=__import__('sapo').__version__,
     description='Minimalistic Python SOAP server',
     author='Edoardo Nodari',

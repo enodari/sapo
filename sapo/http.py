@@ -1,6 +1,4 @@
-from sapo import xml
-from sapo.soap import ClientError, OperationError, ServerError
-from sapo.soap import Envelope, WSDL
+from sapo import soap, wsdl, xml
 
 HTTP_200 = '200 OK'
 HTTP_404 = '404 Not Found'
@@ -20,7 +18,7 @@ class Response:
 
 class Sapo:
     def __init__(self, location):
-        self.wsdl = WSDL(location)
+        self.wsdl = wsdl.WSDL(location)
         self.operations = {}
 
     def operation(self, name, methods=['POST']):
@@ -51,18 +49,18 @@ class Sapo:
                 return Response(HTTP_200, self.wsdl)
         if method == 'POST':
             try:
-                operation, request = Envelope.disclose(body)
-                self.wsdl.validate(request)
+                operation, request = soap.Envelope.disclose(body)
+                self.wsdl.validate(operation, request)
                 try:
                     response = self.operations[operation]['func'](xml.strip_ns(request))
                 except KeyError:
-                    # manage response creation errors
-                    raise OperationError()
-
-                self.wsdl.validate(response, server=True)
-            except (ClientError, OperationError, ServerError) as error:
+                    raise soap.OperationError()
+                except:
+                    raise soap.ServerError()
+                self.wsdl.validate(operation, response, server=True)
+            except (soap.ClientError, soap.ServerError) as error:
                 return Response(HTTP_500, error.fault)
 
-            envelope = Envelope.enclose(response)
+            envelope = soap.Envelope.enclose(response)
             return Response(HTTP_200, envelope)
         return Response(HTTP_405)

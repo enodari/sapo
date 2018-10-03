@@ -1,3 +1,5 @@
+import os
+
 from collections import OrderedDict
 
 from lxml import etree as et, objectify
@@ -16,6 +18,11 @@ def factory(ns=''):
 
 def from_path(path):
     return et.parse(path, PARSER)
+
+
+def load_from_abs_path(path, base=None):
+    path = os.path.abspath(path)
+    return from_path(path)
 
 
 def validate(schema, message):
@@ -64,6 +71,12 @@ def from_dict(d):
 
 def get_ns(element):
     return element.xpath('namespace-uri(.)')
+
+
+def qstring(string):
+    if ':' in string:
+        return string.split(':', 1)
+    return 'tns', string
 
 
 def strip_ns(tree):
