@@ -12,8 +12,11 @@ NSMAP = {
 
 
 class WSDL:
+    """
+    TODO: comment code, keep max PEP8 line length
+    """
     def __init__(self, location):
-        root_tree = xml.load_from_abs_path(location)
+        root_tree = xml.from_path(location)
         root_nsmap = root_tree.getroot().nsmap
 
         self.root_tree = root_tree
@@ -64,7 +67,7 @@ class WSDL:
                 }
 
     def resolve_imports(self, location):
-        doc = xml.load_from_abs_path(location)
+        doc = xml.from_path(location)
 
         tns = doc.getroot().get('targetNamespace')
 
@@ -103,7 +106,7 @@ class WSDL:
             raise ServerError('No schema found')
 
         try:
-            xml.validate(schema, message)
+            xml.et.XMLSchema(schema).assertValid(message)
             return True
         except xml.ValidationErrors as e:
             raise ServerError(e) if server else ClientError(e)

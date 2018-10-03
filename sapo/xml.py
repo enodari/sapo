@@ -1,13 +1,13 @@
-import os
-
-from collections import OrderedDict
+from os.path import abspath
 
 from lxml import etree as et, objectify
 from lxml.builder import ElementMaker
 
 ValidationErrors = (et.DocumentInvalid, et.XMLSyntaxError)
 
-PARSER = et.XMLParser(resolve_entities=False, load_dtd=True, remove_comments=True)
+PARSER = et.XMLParser(
+    resolve_entities=False, load_dtd=True, remove_comments=True
+)
 
 
 def factory(ns=''):
@@ -17,16 +17,7 @@ def factory(ns=''):
 
 
 def from_path(path):
-    return et.parse(path, PARSER)
-
-
-def load_from_abs_path(path, base=None):
-    path = os.path.abspath(path)
-    return from_path(path)
-
-
-def validate(schema, message):
-    et.XMLSchema(schema).assertValid(message)
+    return et.parse(abspath(path), PARSER)
 
 
 def to_object(root, clean=False):
@@ -39,38 +30,11 @@ def from_string(string):
 
 
 def to_bytes(root, declaration=False):
-        return et.tostring(root, xml_declaration=declaration, encoding='utf-8')
-
-
-def to_dict(r):
-    d = OrderedDict()
-    d.update(('@' + k, v) for k, v in r.attrib.items())
-    d['#tag'] = r.tag
-    d['#text'] = r.text.strip() if r.text else ''
-    d['#nsmap'] = r.nsmap
-    for e in r:
-        t = to_dict(e)
-        if e.tag not in d:
-            d[e.tag] = []
-        d[e.tag].append(t)
-    return d
-
-
-def from_dict(d):
-    r = et.Element(d['#tag'], nsmap=d['#nsmap'])
-    for k, v in d.items():
-        if k == '#text' and v:
-            r.text = str(v)
-        elif k.startswith('@'):
-            r.set(k[1:], v)
-        elif isinstance(v, list):
-            for e in v:
-                r.append(from_dict(e))
-    return r
+    return et.tostring(root, xml_declaration=declaration, encoding='utf-8')
 
 
 def get_ns(element):
-    return element.xpath('namespace-uri(.)')
+    return et.QName(element).namespace
 
 
 def qstring(string):
